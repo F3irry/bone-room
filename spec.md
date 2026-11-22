@@ -91,7 +91,8 @@ These were confirmed with the product owner before building:
 - Besides the round-1 fields, each case has a genre (e.g. "Missing heirloom",
   "Poisoning", "Locked-room murder", "Cold case"), a severity level, the clue numbers
   (1-based) that are red herrings, and the culprit's role.
-- Ladder cases have 3–6 suspects and at least 3 clues.
+- Ladder cases have 4–6 suspects (so that 3 wrong guesses, and therefore a loss, are
+  always possible) and at least 3 clues.
 - Severity levels, from lightest to heaviest: 1 Petty, 2 Serious, 3 Grave, 4 Dire,
   5 Notorious.
 
