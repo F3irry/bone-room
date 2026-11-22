@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from enum import Enum
 
-from bone_room.cases import Case
+from bone_room.cases import LADDER, Case
 
 MAX_GUESSES = 3
 
@@ -92,3 +93,51 @@ class Game:
         if self.guesses_left == 0:
             self.status = Status.LOST
         return GuessOutcome.WRONG
+
+
+class RunStatus(Enum):
+    PLAYING = "playing"  # a case is in progress, or one was just solved and another follows
+    COMPLETE = "complete"  # the last case was solved
+    LOST = "lost"  # a case was lost, which ends the run
+
+
+class Run:
+    """A continuous run through an ordered list of cases (R4, R8)."""
+
+    def __init__(self, cases: Sequence[Case] | None = None) -> None:
+        self.cases = tuple(LADDER if cases is None else cases)
+        if not self.cases:
+            raise ValueError("a run needs at least one case")
+        self._index = 0
+        self.game = Game(self.cases[0])
+
+    @property
+    def case_number(self) -> int:
+        """1-based number of the current case."""
+        return self._index + 1
+
+    @property
+    def total(self) -> int:
+        return len(self.cases)
+
+    @property
+    def solved(self) -> int:
+        return self._index + (1 if self.game.status is Status.WON else 0)
+
+    @property
+    def status(self) -> RunStatus:
+        if self.game.status is Status.LOST:
+            return RunStatus.LOST
+        if self.game.status is Status.WON and self.case_number == self.total:
+            return RunStatus.COMPLETE
+        return RunStatus.PLAYING
+
+    def next_case(self) -> Game | None:
+        """Move on after a win. Returns the new case's game, or None if the run is complete."""
+        if self.game.status is not Status.WON:
+            raise GameOverError("the current case must be solved before moving on")
+        if self.case_number == self.total:
+            return None
+        self._index += 1
+        self.game = Game(self.cases[self._index])
+        return self.game
